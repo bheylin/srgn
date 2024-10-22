@@ -21,7 +21,7 @@ impl TryFrom<RawQuery> for CompiledQuery {
     ///
     /// See the concrete type of the [`TSQueryError`](tree_sitter::QueryError)variant for when this method errors.
     fn try_from(query: RawQuery) -> Result<Self, Self::Error> {
-        let q = super::CompiledQuery::from_raw_query(&tree_sitter_go::LANGUAGE.into(), query)?;
+        let q = super::CompiledQuery::from_raw_query(&tree_sitter_go::LANGUAGE.into(), &query)?;
         Ok(Self(q))
     }
 }
@@ -83,10 +83,10 @@ pub enum PreparedQuery {
 }
 
 impl PreparedQuery {
-    fn as_str(&self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
-            PreparedQuery::Comments => "(comment) @comment",
-            PreparedQuery::Strings => {
+            Self::Comments => "(comment) @comment",
+            Self::Strings => {
                 formatcp!(
                     r"
                     [
@@ -99,16 +99,14 @@ impl PreparedQuery {
                     IGNORE
                 )
             }
-            PreparedQuery::Imports => r"(import_spec path: (interpreted_string_literal) @path)",
-            PreparedQuery::TypeDef => r"(type_declaration) @type_decl",
-            PreparedQuery::TypeAlias => r"(type_alias) @type_alias",
-            PreparedQuery::Struct => r"(type_declaration (type_spec type: (struct_type))) @struct",
-            PreparedQuery::Interface => {
-                r"(type_declaration (type_spec type: (interface_type))) @interface"
-            }
-            PreparedQuery::Const => "(const_spec) @const",
-            PreparedQuery::Var => "(var_spec) @var",
-            PreparedQuery::Func => {
+            Self::Imports => r"(import_spec path: (interpreted_string_literal) @path)",
+            Self::TypeDef => r"(type_declaration) @type_decl",
+            Self::TypeAlias => r"(type_alias) @type_alias",
+            Self::Struct => r"(type_declaration (type_spec type: (struct_type))) @struct",
+            Self::Interface => r"(type_declaration (type_spec type: (interface_type))) @interface",
+            Self::Const => "(const_spec) @const",
+            Self::Var => "(var_spec) @var",
+            Self::Func => {
                 r"
                 [
                     (method_declaration)
@@ -116,21 +114,21 @@ impl PreparedQuery {
                     (func_literal)
                 ] @func"
             }
-            PreparedQuery::Method => "(method_declaration) @method",
-            PreparedQuery::FreeFunc => "(function_declaration) @free_func",
-            PreparedQuery::InitFunc => {
+            Self::Method => "(method_declaration) @method",
+            Self::FreeFunc => "(function_declaration) @free_func",
+            Self::InitFunc => {
                 r#"(function_declaration
                     name: (identifier) @id (#eq? @id "init")
                 ) @init_func"#
             }
-            PreparedQuery::TypeParams => "(type_parameter_declaration) @type_params",
-            PreparedQuery::Defer => "(defer_statement) @defer",
-            PreparedQuery::Select => "(select_statement) @select",
-            PreparedQuery::Go => "(go_statement) @go",
-            PreparedQuery::Switch => "(expression_switch_statement) @switch",
-            PreparedQuery::Labeled => "(labeled_statement) @labeled",
-            PreparedQuery::Goto => "(goto_statement) @goto",
-            PreparedQuery::StructTags => "(field_declaration tag: (raw_string_literal) @tag)",
+            Self::TypeParams => "(type_parameter_declaration) @type_params",
+            Self::Defer => "(defer_statement) @defer",
+            Self::Select => "(select_statement) @select",
+            Self::Go => "(go_statement) @go",
+            Self::Switch => "(expression_switch_statement) @switch",
+            Self::Labeled => "(labeled_statement) @labeled",
+            Self::Goto => "(goto_statement) @goto",
+            Self::StructTags => "(field_declaration tag: (raw_string_literal) @tag)",
         }
     }
 }

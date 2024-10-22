@@ -36,6 +36,7 @@ use tree_sitter::QueryError as TSQueryError;
 type ScoperList = Vec<Box<dyn LanguageScoper>>;
 
 #[allow(clippy::too_many_lines)] // Only slightly above.
+#[allow(clippy::cognitive_complexity)]
 fn main() -> Result<()> {
     let args = cli::Args::init();
 

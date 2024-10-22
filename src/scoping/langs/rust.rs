@@ -18,7 +18,7 @@ impl TryFrom<RawQuery> for CompiledQuery {
     ///
     /// See the concrete type of the [`TSQueryError`](tree_sitter::QueryError) variant for when this method errors.
     fn try_from(query: RawQuery) -> Result<Self, Self::Error> {
-        let q = super::CompiledQuery::from_raw_query(&tree_sitter_rust::LANGUAGE.into(), query)?;
+        let q = super::CompiledQuery::from_raw_query(&tree_sitter_rust::LANGUAGE.into(), &query)?;
         Ok(Self(q))
     }
 }
@@ -126,9 +126,9 @@ pub enum PreparedQuery {
 
 impl PreparedQuery {
     #[allow(clippy::too_many_lines)]
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
-            PreparedQuery::Comments => {
+            Self::Comments => {
                 r#"
                 [
                     (line_comment)+ @line
@@ -138,7 +138,7 @@ impl PreparedQuery {
                 @comment
                 "#
             }
-            PreparedQuery::DocComments => {
+            Self::DocComments => {
                 r#"
                 (
                     (line_comment)+ @line
@@ -146,7 +146,7 @@ impl PreparedQuery {
                 )
                 "#
             }
-            PreparedQuery::Uses => {
+            Self::Uses => {
                 // Match any (wildcard `_`) `argument`, which includes:
                 //
                 // - `scoped_identifier`
@@ -163,122 +163,122 @@ impl PreparedQuery {
                 ]
                 "
             }
-            PreparedQuery::Strings => "(string_content) @string",
-            PreparedQuery::Attribute => "(attribute) @attribute",
-            PreparedQuery::Struct => "(struct_item) @struct_item",
-            PreparedQuery::PrivStruct => {
+            Self::Strings => "(string_content) @string",
+            Self::Attribute => "(attribute) @attribute",
+            Self::Struct => "(struct_item) @struct_item",
+            Self::PrivStruct => {
                 r"(struct_item
                     .
                     name: (type_identifier)
                 ) @struct_item_without_visibility_modifier"
             }
-            PreparedQuery::PubStruct => {
+            Self::PubStruct => {
                 r#"(struct_item
                     (visibility_modifier) @vis
                     (#eq? @vis "pub")
                 ) @struct_item"#
             }
-            PreparedQuery::PubCrateStruct => {
+            Self::PubCrateStruct => {
                 r"(struct_item
                     (visibility_modifier (crate))
                 ) @struct_item"
             }
-            PreparedQuery::PubSelfStruct => {
+            Self::PubSelfStruct => {
                 r"(struct_item
                     (visibility_modifier (self))
                 ) @struct_item"
             }
-            PreparedQuery::PubSuperStruct => {
+            Self::PubSuperStruct => {
                 r"(struct_item
                     (visibility_modifier (super))
                 ) @struct_item"
             }
-            PreparedQuery::Enum => "(enum_item) @enum_item",
-            PreparedQuery::PrivEnum => {
+            Self::Enum => "(enum_item) @enum_item",
+            Self::PrivEnum => {
                 r"(enum_item
                     .
                     name: (type_identifier)
                 ) @enum_item_without_visibility_modifier"
             }
-            PreparedQuery::PubEnum => {
+            Self::PubEnum => {
                 r#"(enum_item
                     (visibility_modifier) @vis
                     (#eq? @vis "pub")
                 ) @enum_item"#
             }
-            PreparedQuery::PubCrateEnum => {
+            Self::PubCrateEnum => {
                 r"(enum_item
                     (visibility_modifier (crate))
                 ) @enum_item"
             }
-            PreparedQuery::PubSelfEnum => {
+            Self::PubSelfEnum => {
                 r"(enum_item
                     (visibility_modifier (self))
                 ) @enum_item"
             }
-            PreparedQuery::PubSuperEnum => {
+            Self::PubSuperEnum => {
                 r"(enum_item
                     (visibility_modifier (super))
                 ) @enum_item"
             }
-            PreparedQuery::EnumVariant => "(enum_variant) @enum_variant",
-            PreparedQuery::Fn => "(function_item) @function_item",
-            PreparedQuery::ImplFn => {
+            Self::EnumVariant => "(enum_variant) @enum_variant",
+            Self::Fn => "(function_item) @function_item",
+            Self::ImplFn => {
                 r"(impl_item
                     body: (_ (function_item) @function)
                 )"
             }
-            PreparedQuery::PrivFn => {
+            Self::PrivFn => {
                 r"(function_item
                     .
                     name: (identifier)
                 ) @function_item_without_visibility_modifier"
             }
-            PreparedQuery::PubFn => {
+            Self::PubFn => {
                 r#"(function_item
                     (visibility_modifier) @vis
                     (#eq? @vis "pub")
                 ) @function_item"#
             }
-            PreparedQuery::PubCrateFn => {
+            Self::PubCrateFn => {
                 r"(function_item
                     (visibility_modifier (crate))
                 ) @function_item"
             }
-            PreparedQuery::PubSelfFn => {
+            Self::PubSelfFn => {
                 r"(function_item
                     (visibility_modifier (self))
                 ) @function_item"
             }
-            PreparedQuery::PubSuperFn => {
+            Self::PubSuperFn => {
                 r"(function_item
                     (visibility_modifier (super))
                 ) @function_item"
             }
-            PreparedQuery::ConstFn => {
+            Self::ConstFn => {
                 r#"(function_item
                     (function_modifiers) @funcmods
                     (#match? @funcmods "const")
                 ) @function_item"#
             }
-            PreparedQuery::AsyncFn => {
+            Self::AsyncFn => {
                 r#"(function_item
                     (function_modifiers) @funcmods
                     (#match? @funcmods "async")
                 ) @function_item"#
             }
-            PreparedQuery::UnsafeFn => {
+            Self::UnsafeFn => {
                 r#"(function_item
                     (function_modifiers) @funcmods
                     (#match? @funcmods "unsafe")
                 ) @function_item"#
             }
-            PreparedQuery::ExternFn => {
+            Self::ExternFn => {
                 r"(function_item
                     (function_modifiers (extern_modifier))
                 ) @extern_function"
             }
-            PreparedQuery::TestFn => {
+            Self::TestFn => {
                 // Any attribute which matches aka contains `test`, preceded or
                 // followed by more attributes, eventually preceded by a function.
                 // The anchors of `.` ensure nothing but the items we're after occur
@@ -297,30 +297,30 @@ impl PreparedQuery {
                     IGNORE
                 )
             }
-            PreparedQuery::Trait => "(trait_item) @trait_item",
-            PreparedQuery::Impl => "(impl_item) @impl_item",
-            PreparedQuery::ImplType => {
+            Self::Trait => "(trait_item) @trait_item",
+            Self::Impl => "(impl_item) @impl_item",
+            Self::ImplType => {
                 r"(impl_item
                     type: (_)
                     !trait
                 ) @impl_item"
             }
-            PreparedQuery::ImplTrait => {
+            Self::ImplTrait => {
                 r"(impl_item
                     trait: (_)
                     .
                     type: (_)
                 ) @impl_item"
             }
-            PreparedQuery::Mod => "(mod_item) @mod_item",
-            PreparedQuery::ModTests => {
+            Self::Mod => "(mod_item) @mod_item",
+            Self::ModTests => {
                 r#"(mod_item
                     name: (identifier) @mod_name
                     (#eq? @mod_name "tests")
                 ) @mod_tests
                 "#
             }
-            PreparedQuery::TypeDef => {
+            Self::TypeDef => {
                 r"
                 [
                     (struct_item)
@@ -330,10 +330,10 @@ impl PreparedQuery {
                 @typedef
                 "
             }
-            PreparedQuery::Identifier => "(identifier) @identifier",
-            PreparedQuery::TypeIdentifier => "(type_identifier) @identifier",
-            PreparedQuery::Closure => "(closure_expression) @closure",
-            PreparedQuery::Unsafe => {
+            Self::Identifier => "(identifier) @identifier",
+            Self::TypeIdentifier => "(type_identifier) @identifier",
+            Self::Closure => "(closure_expression) @closure",
+            Self::Unsafe => {
                 r#"
                     [
                         (

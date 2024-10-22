@@ -44,12 +44,12 @@ struct CompiledQuery {
 }
 
 impl CompiledQuery {
-    /// Create a new CompiledQuery from a RawQuery.
+    /// Create a new `CompiledQuery` from a `RawQuery`.
     ///
     /// # Errors
     ///
     /// See the concrete type of the [`TSQueryError`] variant for when this method errors.
-    fn from_raw_query(lang: &TSLanguage, query: RawQuery) -> Result<Self, TSQueryError> {
+    fn from_raw_query(lang: &TSLanguage, query: &RawQuery) -> Result<Self, TSQueryError> {
         Self::from_str(lang, &query.0)
     }
 

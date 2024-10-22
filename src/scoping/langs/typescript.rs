@@ -19,7 +19,7 @@ impl TryFrom<RawQuery> for CompiledQuery {
     fn try_from(query: RawQuery) -> Result<Self, Self::Error> {
         let q = super::CompiledQuery::from_raw_query(
             &tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
-            query,
+            &query,
         )?;
         Ok(Self(q))
     }
@@ -80,52 +80,52 @@ pub enum PreparedQuery {
 }
 
 impl PreparedQuery {
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
-            PreparedQuery::Comments => "(comment) @comment",
-            PreparedQuery::Imports => r"(import_statement source: (string (string_fragment) @sf))",
-            PreparedQuery::Strings => "(string_fragment) @string",
-            PreparedQuery::Function => "(function_declaration) @func",
-            PreparedQuery::AsyncFunction => {
+            Self::Comments => "(comment) @comment",
+            Self::Imports => r"(import_statement source: (string (string_fragment) @sf))",
+            Self::Strings => "(string_fragment) @string",
+            Self::Function => "(function_declaration) @func",
+            Self::AsyncFunction => {
                 r#"(
                     (function_declaration) @func (#match? @func "^async")
                 )"#
             }
-            PreparedQuery::SyncFunction => {
+            Self::SyncFunction => {
                 r#"(
                     (function_declaration) @func (#not-match? @func "^async")
                 )"#
             }
-            PreparedQuery::Method => "(method_definition) @method",
-            PreparedQuery::Constructor => {
+            Self::Method => "(method_definition) @method",
+            Self::Constructor => {
                 r#"(method_definition
                     name: (_) @name (#eq? @name "constructor")
                 ) @constructor"#
             }
-            PreparedQuery::Class => "(class_declaration) @class",
-            PreparedQuery::Enum => "(enum_declaration) @enum",
-            PreparedQuery::Interface => "(interface_declaration) @interface",
-            PreparedQuery::TryCatch => "(try_statement) @try",
-            PreparedQuery::VarDecl => "(variable_declarator) @var_decl",
-            PreparedQuery::Let => {
+            Self::Class => "(class_declaration) @class",
+            Self::Enum => "(enum_declaration) @enum",
+            Self::Interface => "(interface_declaration) @interface",
+            Self::TryCatch => "(try_statement) @try",
+            Self::VarDecl => "(variable_declarator) @var_decl",
+            Self::Let => {
                 r#"(
                     (lexical_declaration) @let_decl (#match? @let_decl "^let ")
                 )"#
             }
-            PreparedQuery::Const => {
+            Self::Const => {
                 r#"(
                     (lexical_declaration) @const_decl (#match? @const_decl "^const ")
                 )"#
             }
-            PreparedQuery::Var => {
+            Self::Var => {
                 r#"(
                     (variable_declaration) @var_decl (#match? @var_decl "^var ")
                 )"#
             }
-            PreparedQuery::TypeParams => "(type_parameters) @type_parameters",
-            PreparedQuery::TypeAlias => "(type_alias_declaration) @type_alias_declaration",
-            PreparedQuery::Namespace => "(internal_module) @internal_module",
-            PreparedQuery::Export => "(export_statement) @export",
+            Self::TypeParams => "(type_parameters) @type_parameters",
+            Self::TypeAlias => "(type_alias_declaration) @type_alias_declaration",
+            Self::Namespace => "(internal_module) @internal_module",
+            Self::Export => "(export_statement) @export",
         }
     }
 }

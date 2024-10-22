@@ -20,7 +20,7 @@ impl TryFrom<RawQuery> for CompiledQuery {
     ///
     /// See the concrete type of the [`TSQueryError`](tree_sitter::QueryError)variant for when this method errors.
     fn try_from(query: RawQuery) -> Result<Self, Self::Error> {
-        let q = super::CompiledQuery::from_raw_query(&tree_sitter_hcl::language(), query)?;
+        let q = super::CompiledQuery::from_raw_query(&tree_sitter_hcl::language(), &query)?;
         Ok(Self(q))
     }
 }
@@ -81,12 +81,12 @@ pub enum PreparedQuery {
 
 impl PreparedQuery {
     #[allow(clippy::too_many_lines)] // No good way to avoid
-    fn as_str(&self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         // Seems to not play nice with the macro. Put up here, else interpolation is
         // affected.
         #[allow(clippy::needless_raw_string_hashes)]
         match self {
-            PreparedQuery::Variable => {
+            Self::Variable => {
                 r#"
                     (block
                         (identifier) @name
@@ -94,7 +94,7 @@ impl PreparedQuery {
                     ) @block
                 "#
             }
-            PreparedQuery::Resource => {
+            Self::Resource => {
                 r#"
                     (block
                         (identifier) @name
@@ -102,7 +102,7 @@ impl PreparedQuery {
                     ) @block
                 "#
             }
-            PreparedQuery::Data => {
+            Self::Data => {
                 r#"
                     (block
                         (identifier) @name
@@ -110,7 +110,7 @@ impl PreparedQuery {
                     ) @block
                 "#
             }
-            PreparedQuery::Output => {
+            Self::Output => {
                 r#"
                     (block
                         (identifier) @name
@@ -118,7 +118,7 @@ impl PreparedQuery {
                     ) @block
                 "#
             }
-            PreparedQuery::Provider => {
+            Self::Provider => {
                 r#"
                     (block
                         (identifier) @name
@@ -126,7 +126,7 @@ impl PreparedQuery {
                     ) @block
                 "#
             }
-            PreparedQuery::Terraform => {
+            Self::Terraform => {
                 r#"
                     (block
                         (identifier) @name
@@ -134,7 +134,7 @@ impl PreparedQuery {
                     ) @block
                 "#
             }
-            PreparedQuery::Locals => {
+            Self::Locals => {
                 r#"
                     (block
                         (identifier) @name
@@ -142,7 +142,7 @@ impl PreparedQuery {
                     ) @block
                 "#
             }
-            PreparedQuery::Module => {
+            Self::Module => {
                 r#"
                     (block
                         (identifier) @name
@@ -150,7 +150,7 @@ impl PreparedQuery {
                     ) @block
                 "#
             }
-            PreparedQuery::Variables => {
+            Self::Variables => {
                 // Capturing nodes with names, such as `@id`, requires names to be
                 // unique across the *entire* query, else things break. Hence, us
                 // `@a.b` syntax (which seems undocumented).
@@ -177,7 +177,7 @@ impl PreparedQuery {
                     IGNORE
                 )
             }
-            PreparedQuery::ResourceNames => {
+            Self::ResourceNames => {
                 // Capturing nodes with names, such as `@id`, requires names to be
                 // unique across the *entire* query, else things break. Hence, us
                 // `@a.b` syntax (which seems undocumented).
@@ -211,7 +211,7 @@ impl PreparedQuery {
                     IGNORE
                 )
             }
-            PreparedQuery::ResourceTypes => {
+            Self::ResourceTypes => {
                 // Capturing nodes with names, such as `@id`, requires names to be
                 // unique across the *entire* query, else things break. Hence, us
                 // `@a.b` syntax (which seems undocumented).
@@ -246,7 +246,7 @@ impl PreparedQuery {
                     IGNORE
                 )
             }
-            PreparedQuery::DataNames => {
+            Self::DataNames => {
                 // Capturing nodes with names, such as `@id`, requires names to be
                 // unique across the *entire* query, else things break. Hence, us
                 // `@a.b` syntax (which seems undocumented).
@@ -278,7 +278,7 @@ impl PreparedQuery {
                     IGNORE
                 )
             }
-            PreparedQuery::DataSources => {
+            Self::DataSources => {
                 // Capturing nodes with names, such as `@id`, requires names to be
                 // unique across the *entire* query, else things break. Hence, us
                 // `@a.b` syntax (which seems undocumented).
@@ -310,8 +310,8 @@ impl PreparedQuery {
                     IGNORE
                 )
             }
-            PreparedQuery::Comments => "(comment) @comment",
-            PreparedQuery::Strings => {
+            Self::Comments => "(comment) @comment",
+            Self::Strings => {
                 r"
                 [
                     (literal_value

@@ -19,7 +19,7 @@ impl TryFrom<RawQuery> for CompiledQuery {
     ///
     /// See the concrete type of the [`TSQueryError`](tree_sitter::QueryError)variant for when this method errors.
     fn try_from(query: RawQuery) -> Result<Self, Self::Error> {
-        let q = super::CompiledQuery::from_raw_query(&tree_sitter_python::LANGUAGE.into(), query)?;
+        let q = super::CompiledQuery::from_raw_query(&tree_sitter_python::LANGUAGE.into(), &query)?;
         Ok(Self(q))
     }
 }
@@ -78,11 +78,11 @@ pub enum PreparedQuery {
 
 impl PreparedQuery {
     #[allow(clippy::too_many_lines)]
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
-            PreparedQuery::Comments => "(comment) @comment",
-            PreparedQuery::Strings => "(string_content) @string",
-            PreparedQuery::Imports => {
+            Self::Comments => "(comment) @comment",
+            Self::Strings => "(string_content) @string",
+            Self::Imports => {
                 r"[
                     (import_statement
                             name: (dotted_name) @dn)
@@ -98,7 +98,7 @@ impl PreparedQuery {
                         module_name: (relative_import) @ri)
                 ]"
             }
-            PreparedQuery::DocStrings => {
+            Self::DocStrings => {
                 // Triple-quotes are also used for multi-line strings. So look only
                 // for stand-alone expressions, which are not part of some variable
                 // assignment.
@@ -117,24 +117,24 @@ impl PreparedQuery {
                     IGNORE
                 )
             }
-            PreparedQuery::FunctionNames => {
+            Self::FunctionNames => {
                 r"
                 (function_definition
                     name: (identifier) @function-name
                 )
                 "
             }
-            PreparedQuery::FunctionCalls => {
+            Self::FunctionCalls => {
                 r"
                 (call
                     function: (identifier) @function-name
                 )
                 "
             }
-            PreparedQuery::Class => "(class_definition) @class",
-            PreparedQuery::Def => "(function_definition) @def",
-            PreparedQuery::AsyncDef => r#"((function_definition) @def (#match? @def "^async "))"#,
-            PreparedQuery::Methods => {
+            Self::Class => "(class_definition) @class",
+            Self::Def => "(function_definition) @def",
+            Self::AsyncDef => r#"((function_definition) @def (#match? @def "^async "))"#,
+            Self::Methods => {
                 r"
                 (class_definition
                     body: (block
@@ -146,7 +146,7 @@ impl PreparedQuery {
                 )
                 "
             }
-            PreparedQuery::ClassMethods => {
+            Self::ClassMethods => {
                 formatcp!(
                     "
                     (class_definition
@@ -161,7 +161,7 @@ impl PreparedQuery {
                     IGNORE
                 )
             }
-            PreparedQuery::StaticMethods => {
+            Self::StaticMethods => {
                 formatcp!(
                     "
                     (class_definition
@@ -176,15 +176,15 @@ impl PreparedQuery {
                     IGNORE
                 )
             }
-            PreparedQuery::With => "(with_statement) @with",
-            PreparedQuery::Try => "(try_statement) @try",
-            PreparedQuery::Lambda => "(lambda) @lambda",
-            PreparedQuery::Globals => {
+            Self::With => "(with_statement) @with",
+            Self::Try => "(try_statement) @try",
+            Self::Lambda => "(lambda) @lambda",
+            Self::Globals => {
                 "(module (expression_statement (assignment left: (identifier) @global)))"
             }
-            PreparedQuery::VariableIdentifiers => "(assignment left: (identifier) @identifier)",
-            PreparedQuery::Types => "(type) @type",
-            PreparedQuery::Identifiers => "(identifier) @identifier",
+            Self::VariableIdentifiers => "(assignment left: (identifier) @identifier)",
+            Self::Types => "(type) @type",
+            Self::Identifiers => "(identifier) @identifier",
         }
     }
 }

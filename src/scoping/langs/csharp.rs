@@ -20,7 +20,7 @@ impl TryFrom<RawQuery> for CompiledQuery {
     ///
     /// See the concrete type of the [`TSQueryError`](tree_sitter::QueryError)variant for when this method errors.
     fn try_from(query: RawQuery) -> Result<Self, Self::Error> {
-        let q = super::CompiledQuery::from_raw_query(&tree_sitter_c_sharp::LANGUAGE.into(), query)
+        let q = super::CompiledQuery::from_raw_query(&tree_sitter_c_sharp::LANGUAGE.into(), &query)
             .expect("syntax of prepared queries is validated by tests");
         Ok(Self(q))
     }
@@ -74,11 +74,11 @@ pub enum PreparedQuery {
 }
 
 impl PreparedQuery {
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
-            PreparedQuery::Comments => "(comment) @comment",
-            PreparedQuery::Usings => r"(using_directive [(identifier) (qualified_name)] @import)",
-            PreparedQuery::Strings => {
+            Self::Comments => "(comment) @comment",
+            Self::Usings => r"(using_directive [(identifier) (qualified_name)] @import)",
+            Self::Strings => {
                 formatcp!(
                     r"
                     [
@@ -92,18 +92,18 @@ impl PreparedQuery {
                     IGNORE
                 )
             }
-            PreparedQuery::Struct => "(struct_declaration) @struct",
-            PreparedQuery::Enum => "(enum_declaration) @enum",
-            PreparedQuery::Interface => "(interface_declaration) @interface",
-            PreparedQuery::Class => "(class_declaration) @class",
-            PreparedQuery::Method => "(method_declaration) @method",
-            PreparedQuery::VariableDeclaration => "(variable_declaration) @variable",
-            PreparedQuery::Property => "(property_declaration) @property",
-            PreparedQuery::Constructor => "(constructor_declaration) @constructor",
-            PreparedQuery::Destructor => "(destructor_declaration) @destructor",
-            PreparedQuery::Field => "(field_declaration) @field",
-            PreparedQuery::Attribute => "(attribute) @attribute",
-            PreparedQuery::Identifier => "(identifier) @identifier",
+            Self::Struct => "(struct_declaration) @struct",
+            Self::Enum => "(enum_declaration) @enum",
+            Self::Interface => "(interface_declaration) @interface",
+            Self::Class => "(class_declaration) @class",
+            Self::Method => "(method_declaration) @method",
+            Self::VariableDeclaration => "(variable_declaration) @variable",
+            Self::Property => "(property_declaration) @property",
+            Self::Constructor => "(constructor_declaration) @constructor",
+            Self::Destructor => "(destructor_declaration) @destructor",
+            Self::Field => "(field_declaration) @field",
+            Self::Attribute => "(attribute) @attribute",
+            Self::Identifier => "(identifier) @identifier",
         }
     }
 }

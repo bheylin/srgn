@@ -18,7 +18,7 @@ impl TryFrom<RawQuery> for CompiledQuery {
     ///
     /// See the concrete type of the [`TSQueryError`](tree_sitter::QueryError) variant for when this method errors.
     fn try_from(query: RawQuery) -> Result<Self, Self::Error> {
-        let q = super::CompiledQuery::from_raw_query(&tree_sitter_c::LANGUAGE.into(), query)?;
+        let q = super::CompiledQuery::from_raw_query(&tree_sitter_c::LANGUAGE.into(), &query)?;
         Ok(Self(q))
     }
 }
@@ -76,29 +76,29 @@ pub enum PreparedQuery {
 }
 
 impl PreparedQuery {
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
-            PreparedQuery::Comments => "(comment) @comment",
-            PreparedQuery::Strings => "[(string_literal) (system_lib_string)] @string",
-            PreparedQuery::Includes => "(preproc_include) @include",
-            PreparedQuery::TypeDef => "(type_definition) @typedef",
-            PreparedQuery::Enum => "(enum_specifier) @enum",
-            PreparedQuery::Struct => "(struct_specifier) @struct",
-            PreparedQuery::Variable => "(declaration) @var",
-            PreparedQuery::Function => {
+            Self::Comments => "(comment) @comment",
+            Self::Strings => "[(string_literal) (system_lib_string)] @string",
+            Self::Includes => "(preproc_include) @include",
+            Self::TypeDef => "(type_definition) @typedef",
+            Self::Enum => "(enum_specifier) @enum",
+            Self::Struct => "(struct_specifier) @struct",
+            Self::Variable => "(declaration) @var",
+            Self::Function => {
                 "[(function_declarator (identifier)) (call_expression (identifier))] @function"
             }
-            PreparedQuery::FunctionDef => "(function_definition) @function_definition",
-            PreparedQuery::FunctionDecl => "(function_declarator) @function_decl",
-            PreparedQuery::Switch => "(switch_statement) @switch",
-            PreparedQuery::If => "(if_statement) @if",
-            PreparedQuery::For => "(for_statement) @for",
-            PreparedQuery::While => "(while_statement) @while",
-            PreparedQuery::Union => "(union_specifier) @union",
-            PreparedQuery::Do => "(do_statement) @do",
-            PreparedQuery::Identifier => "(identifier) @ident",
-            PreparedQuery::Declaration => "(declaration) @decl",
-            PreparedQuery::CallExpression => "(call_expression) @call",
+            Self::FunctionDef => "(function_definition) @function_definition",
+            Self::FunctionDecl => "(function_declarator) @function_decl",
+            Self::Switch => "(switch_statement) @switch",
+            Self::If => "(if_statement) @if",
+            Self::For => "(for_statement) @for",
+            Self::While => "(while_statement) @while",
+            Self::Union => "(union_specifier) @union",
+            Self::Do => "(do_statement) @do",
+            Self::Identifier => "(identifier) @ident",
+            Self::Declaration => "(declaration) @decl",
+            Self::CallExpression => "(call_expression) @call",
         }
     }
 }
