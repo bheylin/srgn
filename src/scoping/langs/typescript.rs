@@ -25,6 +25,15 @@ impl TryFrom<RawQuery> for CompiledQuery {
     }
 }
 
+impl From<PreparedQuery> for CompiledQuery {
+    fn from(query: PreparedQuery) -> Self {
+        Self(super::CompiledQuery::from_prepared_query(
+            &tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
+            query.as_str(),
+        ))
+    }
+}
+
 /// Prepared tree-sitter queries for TypeScript.
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum PreparedQuery {
@@ -70,9 +79,7 @@ pub enum PreparedQuery {
     Export,
 }
 
-impl super::PreparedQuery for PreparedQuery {
-    type Query = CompiledQuery;
-
+impl PreparedQuery {
     fn as_str(self) -> &'static str {
         match self {
             PreparedQuery::Comments => "(comment) @comment",
@@ -120,14 +127,6 @@ impl super::PreparedQuery for PreparedQuery {
             PreparedQuery::Namespace => "(internal_module) @internal_module",
             PreparedQuery::Export => "(export_statement) @export",
         }
-    }
-
-    fn into_compiled_query(self) -> Self::Query {
-        let q = super::CompiledQuery::from_preparred_query(
-            &tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
-            self,
-        );
-        CompiledQuery(q)
     }
 }
 

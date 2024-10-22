@@ -87,7 +87,7 @@
 //! use srgn::scoping::view::ScopedViewBuilder;
 //!
 //! let input = "def foo(bar: int) -> int: return bar + 1  # Do a thing";
-//! let query = CompiledQuery::try_from(RawQuery::from(PreparedQuery::Comments)).unwrap();
+//! let query = CompiledQuery::from(PreparedQuery::Comments);
 //!
 //! let mut builder = ScopedViewBuilder::new(input);
 //! builder.explode(&query);

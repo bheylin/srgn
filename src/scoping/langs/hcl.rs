@@ -25,6 +25,15 @@ impl TryFrom<RawQuery> for CompiledQuery {
     }
 }
 
+impl From<PreparedQuery> for CompiledQuery {
+    fn from(query: PreparedQuery) -> Self {
+        Self(super::CompiledQuery::from_prepared_query(
+            &tree_sitter_hcl::language(),
+            query.as_str(),
+        ))
+    }
+}
+
 /// Prepared tree-sitter queries for Hcl.
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum PreparedQuery {
@@ -70,11 +79,9 @@ pub enum PreparedQuery {
     Strings,
 }
 
-impl super::PreparedQuery for PreparedQuery {
-    type Query = CompiledQuery;
-
+impl PreparedQuery {
     #[allow(clippy::too_many_lines)] // No good way to avoid
-    fn as_str(self) -> &'static str {
+    fn as_str(&self) -> &'static str {
         // Seems to not play nice with the macro. Put up here, else interpolation is
         // affected.
         #[allow(clippy::needless_raw_string_hashes)]
@@ -322,11 +329,6 @@ impl super::PreparedQuery for PreparedQuery {
                 "
             }
         }
-    }
-
-    fn into_compiled_query(self) -> Self::Query {
-        let q = super::CompiledQuery::from_preparred_query(&tree_sitter_hcl::language(), self);
-        CompiledQuery(q)
     }
 }
 

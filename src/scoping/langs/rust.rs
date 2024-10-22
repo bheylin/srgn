@@ -23,6 +23,15 @@ impl TryFrom<RawQuery> for CompiledQuery {
     }
 }
 
+impl From<PreparedQuery> for CompiledQuery {
+    fn from(query: PreparedQuery) -> Self {
+        Self(super::CompiledQuery::from_prepared_query(
+            &tree_sitter_rust::LANGUAGE.into(),
+            query.as_str(),
+        ))
+    }
+}
+
 /// Prepared tree-sitter queries for Rust.
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum PreparedQuery {
@@ -115,9 +124,7 @@ pub enum PreparedQuery {
     Unsafe,
 }
 
-impl super::PreparedQuery for PreparedQuery {
-    type Query = CompiledQuery;
-
+impl PreparedQuery {
     #[allow(clippy::too_many_lines)]
     fn as_str(self) -> &'static str {
         match self {
@@ -348,12 +355,6 @@ impl super::PreparedQuery for PreparedQuery {
                 "#
             }
         }
-    }
-
-    fn into_compiled_query(self) -> Self::Query {
-        let q =
-            super::CompiledQuery::from_preparred_query(&tree_sitter_rust::LANGUAGE.into(), self);
-        CompiledQuery(q)
     }
 }
 

@@ -26,6 +26,15 @@ impl TryFrom<RawQuery> for CompiledQuery {
     }
 }
 
+impl From<PreparedQuery> for CompiledQuery {
+    fn from(query: PreparedQuery) -> Self {
+        Self(super::CompiledQuery::from_prepared_query(
+            &tree_sitter_go::LANGUAGE.into(),
+            query.as_str(),
+        ))
+    }
+}
+
 /// Prepared tree-sitter queries for Go.
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum PreparedQuery {
@@ -73,10 +82,8 @@ pub enum PreparedQuery {
     StructTags,
 }
 
-impl super::PreparedQuery for PreparedQuery {
-    type Query = CompiledQuery;
-
-    fn as_str(self) -> &'static str {
+impl PreparedQuery {
+    fn as_str(&self) -> &'static str {
         match self {
             PreparedQuery::Comments => "(comment) @comment",
             PreparedQuery::Strings => {
@@ -125,11 +132,6 @@ impl super::PreparedQuery for PreparedQuery {
             PreparedQuery::Goto => "(goto_statement) @goto",
             PreparedQuery::StructTags => "(field_declaration tag: (raw_string_literal) @tag)",
         }
-    }
-
-    fn into_compiled_query(self) -> Self::Query {
-        let q = super::CompiledQuery::from_preparred_query(&tree_sitter_go::LANGUAGE.into(), self);
-        CompiledQuery(q)
     }
 }
 

@@ -1303,23 +1303,24 @@ mod cli {
     }
 
     /// Convert the prepared queries and the literal queries into `CompiledQuery`'s
-    fn accumulate_scopes<C, Q>(
-        prepared_queries: Vec<Q>,
-        literal_queries: Vec<CodeQuery>,
-    ) -> Result<crate::ScoperList, ProgramError>
+    fn accumulate_scopes<C, PQ>(
+        prepared_queries: Vec<PQ>,
+        literal_queries: Vec<RawQuery>,
+    ) -> Result<super::ScoperList, ProgramError>
     where
-        C: LanguageScoper + TryFrom<RawQuery, Error = TSQueryError> + 'static,
-        Q: Into<RawQuery>,
+        C: LanguageScoper + 'static,
+        PQ: Into<C>,
+        RawQuery: TryInto<C, Error = TSQueryError>,
     {
         let mut scopers: crate::ScoperList = Vec::new();
 
         for query in prepared_queries {
-            let compiled_query = C::try_from(query.into())?;
+            let compiled_query: C = query.into();
             scopers.push(Box::new(compiled_query));
         }
 
-        for query in literal_queries {
-            let compiled_query = C::try_from(query.into())?;
+        for raw_query in literal_queries {
+            let compiled_query: C = raw_query.try_into()?;
             scopers.push(Box::new(compiled_query));
         }
 
@@ -1335,7 +1336,7 @@ mod cli {
 
         /// Scope C code using a custom tree-sitter query.
         #[arg(long, env, verbatim_doc_comment, value_name = TREE_SITTER_QUERY_VALUE_NAME)]
-        c_query: Vec<CodeQuery>,
+        c_query: Vec<RawQuery>,
     }
 
     #[derive(Parser, Debug, Clone)]
@@ -1347,7 +1348,7 @@ mod cli {
 
         /// Scope C# code using a custom tree-sitter query.
         #[arg(long, env, verbatim_doc_comment, value_name = TREE_SITTER_QUERY_VALUE_NAME)]
-        csharp_query: Vec<CodeQuery>,
+        csharp_query: Vec<RawQuery>,
     }
 
     #[derive(Parser, Debug, Clone)]
@@ -1361,7 +1362,7 @@ mod cli {
         #[allow(clippy::doc_markdown)] // CamelCase detected as 'needs backticks'
         /// Scope HashiCorp Configuration Language code using a custom tree-sitter query.
         #[arg(long, env, verbatim_doc_comment, value_name = TREE_SITTER_QUERY_VALUE_NAME)]
-        hcl_query: Vec<CodeQuery>,
+        hcl_query: Vec<RawQuery>,
     }
 
     #[derive(Parser, Debug, Clone)]
@@ -1373,7 +1374,7 @@ mod cli {
 
         /// Scope Go code using a custom tree-sitter query.
         #[arg(long, env, verbatim_doc_comment, value_name = TREE_SITTER_QUERY_VALUE_NAME)]
-        go_query: Vec<CodeQuery>,
+        go_query: Vec<RawQuery>,
     }
 
     #[derive(Parser, Debug, Clone)]
@@ -1385,7 +1386,7 @@ mod cli {
 
         /// Scope Python code using a custom tree-sitter query.
         #[arg(long, env, verbatim_doc_comment, value_name = TREE_SITTER_QUERY_VALUE_NAME)]
-        python_query: Vec<CodeQuery>,
+        python_query: Vec<RawQuery>,
     }
 
     #[derive(Parser, Debug, Clone)]
@@ -1397,7 +1398,7 @@ mod cli {
 
         /// Scope Rust code using a custom tree-sitter query.
         #[arg(long, env, verbatim_doc_comment, value_name = TREE_SITTER_QUERY_VALUE_NAME)]
-        rust_query: Vec<CodeQuery>,
+        rust_query: Vec<RawQuery>,
     }
 
     #[derive(Parser, Debug, Clone)]
@@ -1409,7 +1410,7 @@ mod cli {
 
         /// Scope TypeScript code using a custom tree-sitter query.
         #[arg(long, env, verbatim_doc_comment, value_name = TREE_SITTER_QUERY_VALUE_NAME)]
-        typescript_query: Vec<CodeQuery>,
+        typescript_query: Vec<RawQuery>,
     }
 
     #[cfg(feature = "german")]
@@ -1445,23 +1446,23 @@ mod cli {
         }
     }
 
-    /// A container for a literal tree-sitter query.
-    ///
-    /// This provids basic type protection while parsing args.
-    #[derive(Debug, Clone)]
-    struct CodeQuery(String);
+    // /// A container for a literal tree-sitter query.
+    // ///
+    // /// This provides basic type protection while parsing args.
+    // #[derive(Debug, Clone)]
+    // struct CodeQuery(String);
 
-    impl From<String> for CodeQuery {
-        fn from(s: String) -> Self {
-            Self(s)
-        }
-    }
+    // impl From<String> for CodeQuery {
+    //     fn from(s: String) -> Self {
+    //         Self(s)
+    //     }
+    // }
 
-    impl From<CodeQuery> for RawQuery {
-        fn from(q: CodeQuery) -> Self {
-            q.0.into()
-        }
-    }
+    // impl From<CodeQuery> for RawQuery {
+    //     fn from(q: CodeQuery) -> Self {
+    //         q.0.into()
+    //     }
+    // }
 }
 
 #[cfg(test)]

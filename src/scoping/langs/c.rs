@@ -23,6 +23,15 @@ impl TryFrom<RawQuery> for CompiledQuery {
     }
 }
 
+impl From<PreparedQuery> for CompiledQuery {
+    fn from(query: PreparedQuery) -> Self {
+        Self(super::CompiledQuery::from_prepared_query(
+            &tree_sitter_c::LANGUAGE.into(),
+            query.as_str(),
+        ))
+    }
+}
+
 /// Prepared tree-sitter queries for C.
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum PreparedQuery {
@@ -66,9 +75,7 @@ pub enum PreparedQuery {
     CallExpression,
 }
 
-impl super::PreparedQuery for PreparedQuery {
-    type Query = CompiledQuery;
-
+impl PreparedQuery {
     fn as_str(self) -> &'static str {
         match self {
             PreparedQuery::Comments => "(comment) @comment",
@@ -93,11 +100,6 @@ impl super::PreparedQuery for PreparedQuery {
             PreparedQuery::Declaration => "(declaration) @decl",
             PreparedQuery::CallExpression => "(call_expression) @call",
         }
-    }
-
-    fn into_compiled_query(self) -> Self::Query {
-        let q = super::CompiledQuery::from_preparred_query(&tree_sitter_c::LANGUAGE.into(), self);
-        CompiledQuery(q)
     }
 }
 
